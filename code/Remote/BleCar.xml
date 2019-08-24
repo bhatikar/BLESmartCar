@@ -1,0 +1,35 @@
+<uart-configuration name="BleCar">
+   <!-- A configuration must have 9 commands, one for each button.
+        Possible icons are:
+          - LEFT
+          - UP
+          - RIGHT
+          - DOWN
+          - SETTINGS
+          - REW
+          - PLAY
+          - PAUSE
+          - STOP
+          - FWD
+          - INFO
+          - NUMBER_1
+          - NUMBER_2
+          - NUMBER_3
+          - NUMBER_4
+          - NUMBER_5
+          - NUMBER_6
+          - NUMBER_7
+          - NUMBER_8
+          - NUMBER_9 -->
+   <commands length="9">
+      <command active="false" eol="LF" icon="LEFT"/>
+      <command active="true" eol="LF" icon="UP">Forward</command>
+      <command/>
+      <command active="true" eol="LF" icon="LEFT">Left</command>
+      <command active="true" eol="LF" icon="INFO">Autonomous</command>
+      <command active="true" eol="LF" icon="RIGHT">Right</command>
+      <command/>
+      <command active="true" eol="LF" icon="DOWN">Back</command>
+      <command/>
+   </commands>
+</uart-configuration>
