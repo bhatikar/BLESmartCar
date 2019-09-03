@@ -1,19 +1,21 @@
 // Motor A
+int enable1Pin = 4; 
 int motor1Pin1 = 13; 
 int motor1Pin2 = 27; 
-int enable1Pin = 4; 
+
 
 // Motor A
+int enable2Pin = 32; 
 int motor2Pin1 = 33; 
 int motor2Pin2 = 25; 
-int enable2Pin = 32; 
-
 
 // Setting PWM properties
 const int freq = 30000;
-const int pwmChannel = 5;
+const int pwmChannel1 = 5;
+const int pwmChannel2 = 6;
+const int correctionFactor = 10;
 const int resolution = 8;
-int dutyCycle = 200;
+//int dutyCycle = 200;
 
 #include <Servo.h>
 int servoPin = 21;
@@ -31,28 +33,28 @@ bool autonomous = false;
 void remoteForward()
 {
   moveForward();
-  delay(1000);
+  //delay(500);
   moveStop();
 }
 
 void remoteBackward()
 {
   moveBackward();
-  delay(1000);
+  //delay(500);
   moveStop();
 }
 
 void remoteLeft()
 {
   turnLeft();
-  delay(1000);
+  //delay(1000);
   moveStop();
 }
 
 void remoteRight()
 {
   turnRight();
-  delay(1000);
+  //delay(1000);
   moveStop();
 }
 
@@ -64,8 +66,9 @@ void moveForward()
   digitalWrite(motor1Pin2, HIGH);
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, HIGH);
-  ledcWrite(pwmChannel, 200);
-  delay(1500);
+  ledcWrite(pwmChannel1, 140); //right motor
+  ledcWrite(pwmChannel2, 230 + correctionFactor); //left motor
+  delay(600);
 }
 
 void moveBackward()
@@ -76,8 +79,9 @@ void moveBackward()
   digitalWrite(motor1Pin2, LOW); 
   digitalWrite(motor2Pin1, HIGH);
   digitalWrite(motor2Pin2, LOW); 
-  ledcWrite(pwmChannel, 200);
-  delay(1500);
+  ledcWrite(pwmChannel1, 120);
+  ledcWrite(pwmChannel2, 230 + correctionFactor);
+  delay(400);
 }
 
 void moveStop()
@@ -88,7 +92,7 @@ void moveStop()
   digitalWrite(motor1Pin2, LOW);
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, LOW);
-  delay(1000);
+  delay(100);
 }
 
 void turnRight()
@@ -99,8 +103,9 @@ void turnRight()
   digitalWrite(motor1Pin2, LOW); 
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, HIGH); 
-  ledcWrite(pwmChannel, 200);
-  delay(1000);
+  ledcWrite(pwmChannel1, 190);
+  //ledcWrite(pwmChannel2, 190 + correctionFactor);
+  delay(200);
 }
 
 void turnLeft()
@@ -111,27 +116,21 @@ void turnLeft()
   digitalWrite(motor1Pin2, HIGH); 
   digitalWrite(motor2Pin1, HIGH);
   digitalWrite(motor2Pin2, LOW); 
-  ledcWrite(pwmChannel, 200);
-  delay(1000);
+  //ledcWrite(pwmChannel1, 190);
+  ledcWrite(pwmChannel2, 190 + correctionFactor);
+  delay(200);
 }
 
 
 
 int lookLeft()
 {
-  
   myservo.write(120);
-
   delay(1000);
-
   int distance = distanceSensor.measureDistanceCm();
-
   myservo.write(90);
-
-  delay(1000);
-
+  delay(500);
   return distance;
-
 }
 
 
@@ -141,7 +140,7 @@ int lookRight()
   delay(1000);
   int distance = distanceSensor.measureDistanceCm();
   myservo.write(90);
-  delay(1000);
+  delay(500);
   return distance;
 }
 
@@ -149,9 +148,9 @@ void autonomousCar() {
 
  int distanceR = 0;
  int distanceL =  0;
- delay(40);
+ //delay(40);
  
- if(distance <= 15)
+ if(distance <= 40)
  {
   moveStop();
   delay(100);
@@ -178,6 +177,13 @@ void autonomousCar() {
   moveForward();
  }
  distance = distanceSensor.measureDistanceCm();
+ if(distance <= 30)
+ {
+  moveStop();
+  delay(100);
+ }
+ Serial.print(distance);
+ //delay(200);
 }
 
 
@@ -192,11 +198,12 @@ void setup_motorshield()
   pinMode(enable2Pin, OUTPUT);
   
   // configure LED PWM functionalitites
-  ledcSetup(pwmChannel, freq, resolution);
+  ledcSetup(pwmChannel1, freq, resolution);
+  ledcSetup(pwmChannel2, freq, resolution);
   
   // attach the channel to the GPIO to be controlled
-  ledcAttachPin(enable1Pin, pwmChannel);
-  ledcAttachPin(enable2Pin, pwmChannel);
+  ledcAttachPin(enable1Pin, pwmChannel1);
+  ledcAttachPin(enable2Pin, pwmChannel2);
 }
 
 void setup_servo()
