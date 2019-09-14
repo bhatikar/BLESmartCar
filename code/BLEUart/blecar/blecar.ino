@@ -3,8 +3,7 @@ int enable1Pin = 4;
 int motor1Pin1 = 13; 
 int motor1Pin2 = 27; 
 
-
-// Motor A
+// Motor B
 int enable2Pin = 32; 
 int motor2Pin1 = 33; 
 int motor2Pin2 = 25; 
@@ -15,7 +14,6 @@ const int pwmChannel1 = 5;
 const int pwmChannel2 = 6;
 const int correctionFactor = 10;
 const int resolution = 8;
-//int dutyCycle = 200;
 
 #include <Servo.h>
 int servoPin = 21;
@@ -33,28 +31,28 @@ bool autonomous = false;
 void remoteForward()
 {
   moveForward();
-  //delay(500);
-  moveStop();
 }
 
 void remoteBackward()
 {
   moveBackward();
-  //delay(500);
   moveStop();
 }
 
 void remoteLeft()
 {
   turnLeft();
-  //delay(1000);
   moveStop();
 }
 
 void remoteRight()
 {
   turnRight();
-  //delay(1000);
+  moveStop();
+}
+
+void remoteStop()
+{
   moveStop();
 }
 
@@ -79,8 +77,8 @@ void moveBackward()
   digitalWrite(motor1Pin2, LOW); 
   digitalWrite(motor2Pin1, HIGH);
   digitalWrite(motor2Pin2, LOW); 
-  ledcWrite(pwmChannel1, 120);
-  ledcWrite(pwmChannel2, 230 + correctionFactor);
+  ledcWrite(pwmChannel1, 110);
+  ledcWrite(pwmChannel2, 240 + correctionFactor);
   delay(400);
 }
 
@@ -121,11 +119,9 @@ void turnLeft()
   delay(200);
 }
 
-
-
 int lookLeft()
 {
-  myservo.write(120);
+  myservo.write(130);
   delay(1000);
   int distance = distanceSensor.measureDistanceCm();
   myservo.write(90);
@@ -148,9 +144,8 @@ void autonomousCar() {
 
  int distanceR = 0;
  int distanceL =  0;
- //delay(40);
- 
- if(distance <= 40)
+
+ if(distance <= 50)
  {
   moveStop();
   delay(100);
@@ -177,15 +172,13 @@ void autonomousCar() {
   moveForward();
  }
  distance = distanceSensor.measureDistanceCm();
- if(distance <= 30)
+ if(distance <= 50)
  {
   moveStop();
   delay(100);
  }
  Serial.print(distance);
- //delay(200);
 }
-
 
 void setup_motorshield()
 {
@@ -253,34 +246,44 @@ class MyCallbacks: public BLECharacteristicCallbacks {
       if (rxValue.length() > 0) {
         for (int i = 0; i < rxValue.length(); i++)
           Serial.print(rxValue[i]);
-          if(strncmp(rxValue.c_str(), "Forward", rxValue.length()) == 0)
+          //printf("%s", rxValue.c_str());
+          printf("%d", rxValue.length());
+          //if(strncmp(rxValue.c_str(), "Forward", rxValue.length()) == 0)
+          if(strncmp(rxValue.c_str(), "0,80,0", rxValue.length() - 2) == 0)
           {
             autonomous = false;
             remoteForward();
           }
-          if(strncmp(rxValue.c_str(), "Left", rxValue.length()) == 0)
+          //if(strncmp(rxValue.c_str(), "Left", rxValue.length()) == 0)
+          if(strncmp(rxValue.c_str(), "-80,80,0", rxValue.length() - 2) == 0)
           {
             autonomous = false;
             remoteLeft();
           }
-         
-          if(strncmp(rxValue.c_str(), "Right", rxValue.length()) == 0)
+          //if(strncmp(rxValue.c_str(), "Right", rxValue.length()) == 0)
+          if(strncmp(rxValue.c_str(), "80,80,0", rxValue.length() - 2) == 0)
           {
             autonomous = false;
             remoteRight();
           }
-          if(strncmp(rxValue.c_str(), "Back", rxValue.length()) == 0)
+          //if(strncmp(rxValue.c_str(), "Back", rxValue.length()) == 0)
+          if(strncmp(rxValue.c_str(), "0,-80,0", rxValue.length() - 2) == 0)
+         
           {
             autonomous = false;
             remoteBackward();
+          }
+          if(strncmp(rxValue.c_str(), "0,0,0", rxValue.length() - 2) == 0)
+          //if(strncmp(rxValue.c_str(), "Stop", rxValue.length()) == 0)
+          {
+            autonomous = false;
+            remoteStop();
           }
           if(strncmp(rxValue.c_str(), "Autonomous", rxValue.length()) == 0)
           {
             autonomous = true;
             autonomousCar();
-          }
-
-            
+          }            
       }
     }
 };
@@ -326,20 +329,17 @@ void setup() {
   Serial.println("Waiting a client connection to notify...");
 }
 
-
-
-
 void loop() {
 
   if(autonomous)
     autonomousCar();
-    
+
     if (deviceConnected) {
         pTxCharacteristic->setValue(&txValue, 1);
         pTxCharacteristic->notify();
         txValue++;
-    delay(10); // bluetooth stack will go into congestion, if too many packets are sent
-  }
+        delay(10); // bluetooth stack will go into congestion, if too many packets are sent
+    }
 
     // disconnecting
     if (!deviceConnected && oldDeviceConnected) {
